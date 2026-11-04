@@ -1,3 +1,5 @@
+"""Тесты модели Classroom."""
+
 import pytest
 from dataclasses import FrozenInstanceError
 

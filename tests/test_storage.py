@@ -1,6 +1,7 @@
 """Тесты сохранения и загрузки в JSON."""
 
 import json
+
 import pytest
 
 from catalog.catalog import Catalog
@@ -12,6 +13,7 @@ from catalog.errors import (
 )
 from catalog.models import Classroom
 from catalog.storage import FORMAT_VERSION, load_catalog, load_into, save_catalog
+
 
 def make_classroom(id_="A-101") -> Classroom:
     return Classroom(
@@ -36,7 +38,14 @@ def test_round_trip(tmp_path):
 
 def test_unicode_preserved(tmp_path):
     cat = Catalog()
-    cat.add(Classroom(item_id="A", name="Привет", category="lecture", year=2000, capacity=10, building="А"))
+    cat.add(Classroom(
+        item_id="A",
+        name="Привет",
+        category="lecture",
+        year=2000,
+        capacity=10,
+        building="А"
+    ))
     path = tmp_path / "cat.json"
     save_catalog(cat, path)
     text = path.read_text(encoding="utf-8")
@@ -113,7 +122,14 @@ def test_load_into_transactional(tmp_path):
     data = {
         "format_version": 1,
         "items": [
-            {"item_id": "A", "name": "x", "category": "lecture", "year": 2000, "capacity": 10, "building": "A"}
+            {
+                "item_id": "A",
+                "name": "x",
+                "category": "lecture",
+                "year": 2000,
+                "capacity": 10,
+                "building": "A"
+            }
         ],
     }
     path.write_text(json.dumps(data), encoding="utf-8")

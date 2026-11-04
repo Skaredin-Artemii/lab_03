@@ -6,6 +6,7 @@ from catalog.catalog import Catalog
 from catalog.errors import DuplicateIdError, ItemNotFoundError
 from catalog.models import Classroom
 
+
 def make_classroom(id_="A-101", name="Аудитория", category="lecture") -> Classroom:
     return Classroom(
         item_id=id_,
@@ -41,7 +42,7 @@ def test_get_missing_raises():
     cat = Catalog()
     with pytest.raises(ItemNotFoundError) as exc_info:
         cat.get("missing")
-    assert exc_info.value.iten_id == "missing"
+    assert exc_info.value.item_id == "missing"
 
 def test_remove():
     cat = Catalog()
@@ -69,7 +70,7 @@ def test_iteration_after_remove_and_add():
     cat.add(make_classroom("C")) 
     cat.remove("B")
     cat.add(make_classroom("D"))
-    assert [x.item_id for x in cat] == ["A", "B", "D"]
+    assert [x.item_id for x in cat] == ["A", "C", "D"]
 
 def test_find_by_category():
     cat = Catalog()

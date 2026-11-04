@@ -1,10 +1,12 @@
 """Тесты модели Classroom."""
 
-import pytest
 from dataclasses import FrozenInstanceError
+
+import pytest
 
 from catalog.errors import InvalidItemError
 from catalog.models import YEAR_MAX, YEAR_MIN, Classroom
+
 
 def make_classroom(**overrides):
     """Помощник для создания аудиторий с возможностью переопределять поля."""

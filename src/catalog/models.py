@@ -49,7 +49,7 @@ class Classroom:
             raise InvalidItemError("category должен быть строкой", field="category")
         if self.category not in ALLOWED_CATEGORIES:
             raise InvalidItemError(
-                f"недопустиимая категория '{self.category}'",
+                f"недопустимая категория '{self.category}'",
                 field="category",
             )
 

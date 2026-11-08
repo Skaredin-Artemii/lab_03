@@ -1,4 +1,4 @@
-"""Демонстрация всех возможностей пакета catalog.
+"""Демонстрация работы пакета catalog.
 
 Запуск: python -m catalog
 """
@@ -18,10 +18,10 @@ from . import (
 )
 
 
-def main() -> None:
-    print("Демонстрация работы пакета catalog\n")
+def main():
+    print("Демонстрация работы пакета catalog")
+    print("=" * 50)
 
-    # 1. Модель (Classroom)
     rooms = [
         Classroom("A-101", "Компьютерный класс", "computer", 2015, 30, "А"),
         Classroom("  B-202  ", "Лаборатория физики", "lab", 2010, 20, "Б"),
@@ -31,80 +31,77 @@ def main() -> None:
         Classroom("F-606", "Компьютерная лаборатория", "computer", 2022, 25, "А"),
         Classroom("G-707", "Лекционный зал 'Физика'", "lecture", 1999, 80, "Б"),
     ]
-    print(f"1. Модель: успешно создано {len(rooms)} аудиторий")
+    print(f"Создано {len(rooms)} аудиторий")
 
-    # Ошибка валидации
+    # проверка валидации модели
     try:
-        Classroom("X-1", "Ошибка", "lab", 1800, 10, "X")
+        Classroom("X-1", "Плохая", "lab", 1800, 10, "X")
     except InvalidItemError as e:
-        print(f"   Защита модели: {e}")
+        print(f"Валидация модели сработала: {e}")
 
-    # 2. Каталог: базовые операции 
+    # работа с каталогом
     cat = Catalog()
     for room in rooms:
         cat.add(room)
-    
-    print(f"\n2. Каталог: добавлено {len(cat)} аудиторий. len = {len(cat)}")
-    print(f"   'A-101' in cat: {'A-101' in cat}")
-    print(f"   get('B-202'): {cat.get('B-202').name}")
 
-    # Дубликат ID
+    print(f"\nВ каталоге {len(cat)} аудиторий")
+    print(f"'A-101' in cat: {'A-101' in cat}")
+    print(f"cat.get('B-202').name = {cat.get('B-202').name}")
+
+    # дубликат
     try:
         cat.add(rooms[0])
     except DuplicateIdError as e:
-        print(f"   Защита от дубликата: {e}")
+        print(f"Дубликат не добавился: {e}")
 
-    # 3. Итерация и поиск 
-    print("\n3. Итерация (все аудитории в порядке добавления):")
+    # итерация
+    print("\nВсе аудитории:")
     for item in cat:
-        print(f"   [{item.item_id}] {item.name} | {item.category} | мест: {item.capacity}")
-    
-    print("\n   Поиск по категории 'computer':")
-    for item in cat.find_by_category("computer"):
-        print(f"      -> {item.name}")
-        
-    print("   Поиск по имени 'физик' (без учета регистра):")
-    for item in cat.find_by_name("физик"):
-        print(f"      -> {item.name}")
+        print(f"  [{item.item_id}] {item.name} | {item.category} | мест: {item.capacity}")
 
-    #  4. Хранение (JSON) 
+    print("\nКатегория 'computer':")
+    for item in cat.find_by_category("computer"):
+        print(f"  -> {item.name}")
+
+    print("Поиск 'физик' в названии:")
+    for item in cat.find_by_name("физик"):
+        print(f"  -> {item.name}")
+
+    #сохранение / загрузка
     with tempfile.TemporaryDirectory() as tmp:
         path = Path(tmp) / "data.json"
-        
         save_catalog(cat, path)
-        print(f"\n4. Хранение: сохранено в JSON ({path.stat().st_size} байт)")
-        
+        print(f"\nСохранено в {path} ({path.stat().st_size} байт)")
+
         loaded = load_catalog(path)
-        print(f"   load_catalog: загружено обратно {len(loaded)} аудиторий")
-        
-        # load_into (успешное слияние)
+        print(f"Загружено {len(loaded)} аудиторий")
+
+        # load_into в новый каталог
         new_cat = Catalog()
         new_cat.add(Classroom("Z-999", "Новая аудитория", "lecture", 2024, 40, "Е"))
-        print(f"   В новом каталоге перед слиянием: {len(new_cat)} аудитория (Z-999)")
-        
-        try:
-            load_into(new_cat, path)
-            print(f" load_into: успешное слияние! Теперь в новом каталоге {len(new_cat)} аудиторий")
-        except InvalidItemError as e:
-            print(f"   Ошибка при слиянии (проверь ID в new_cat): {e}")
-        
-        # Конфликт при load_into 
-        print("   Попытка слить тот же файл еще раз (ожидаем ошибку)...")
-        try:
-            load_into(new_cat, path)
-        except InvalidItemError as e:
-            print(f"      Защита load_into сработала: {e}")
+        print(f"До слияния в новом каталоге: {len(new_cat)} (Z-999)")
 
-    # 5. Удаление 
+        load_into(new_cat, path)
+        print(f"После load_into: {len(new_cat)} аудиторий")
+
+        # повторный load_into того же файла - должен упасть
+        print("Пробую слить тот же файл еще раз...")
+        try:
+            load_into(new_cat, path)
+        except InvalidItemError as e:
+            print(f"  ok, не дало: {e}")
+
+    # удаление
     cat.remove("A-101")
-    print(f"\n5. Удаление: 'A-101' удален, осталось {len(cat)} аудиторий")
-    
+    print(f"\nУдалил 'A-101', осталось {len(cat)}")
+
     try:
         cat.remove("A-101")
     except ItemNotFoundError as e:
-        print(f"   Защита удаления: {e}")
+        print(f"Повторное удаление упало: {e}")
 
-    print("\nВсе функции успешно продемонстрированы.")
+    print("\nВсё работает.")
+    print("=" * 50)
 
 
 if __name__ == "__main__":

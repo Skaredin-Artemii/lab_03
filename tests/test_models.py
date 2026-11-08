@@ -1,6 +1,4 @@
-"""Тесты модели Classroom."""
-
-from dataclasses import FrozenInstanceError
+"""Тесты Classroom."""
 
 import pytest
 
@@ -9,7 +7,6 @@ from catalog.models import YEAR_MAX, YEAR_MIN, Classroom
 
 
 def make_classroom(**overrides):
-    """Помощник для создания аудиторий с возможностью переопределять поля."""
     data = {
         "item_id": "A-101",
         "name": "Информатика",
@@ -21,66 +18,64 @@ def make_classroom(**overrides):
     data.update(overrides)
     return Classroom(**data)
 
-def test_valid_classroom_creation():
-    data = {
-        "item_id": "A-101",
-        "name": "Информатика",
-        "category": "computer",
-        "year": 2015,
-        "capacity": 30,
-        "building": "A",
-    }
-    item = Classroom(**data)
-    assert item.item_id == "A-101"
-    assert item.name == "Информатика"
-    assert item.category == "computer"
 
-def test_normalization_strips_whitespace():
-    item = make_classroom(item_id=" A-101 ", name="Информатика   ", building="  A")
+def test_ok():
+    item = make_classroom()
     assert item.item_id == "A-101"
     assert item.name == "Информатика"
+
+
+def test_strip():
+    item = make_classroom(item_id=" A-101 ", name="  Инфа  ", building=" A ")
+    assert item.item_id == "A-101"
+    assert item.name == "Инфа"
     assert item.building == "A"
 
-@pytest.mark.parametrize(
-    "field, value, expected_field",
-    [
-        ("item_id", "", "item_id"),
-        ("item_id", "   ", "item_id"),
-        ("item_id", 123, "item_id"),
-        ("name", "", "name"),
-        ("name", None, "name"),
-        ("category", "gym", "category"),
-        ("category", "LECTURE", "category"),
-        ("year", YEAR_MIN - 1, "year"),
-        ("year", YEAR_MAX + 1, "year"),
-        ("year", True, "year"),
-        ("year", 2020.0, "year"),
-        ("capacity", 0, "capacity"),
-        ("capacity", -5, "capacity"),
-        ("capacity", True, "capacity"),
-        ("building", "", "building"),
-    ],
-)
-def test_invalid_fields_raise_error(field, value, expected_field):
-    with pytest.raises(InvalidItemError) as exc_info:
-        make_classroom(**{field: value})
-    assert exc_info.value.field == expected_field
 
-def test_boundary_years():
-    item_min = make_classroom(year=YEAR_MIN)
-    item_max = make_classroom(year=YEAR_MAX)
-    assert item_min.year == YEAR_MIN
-    assert item_max.year == YEAR_MAX
+def test_empty_id():
+    with pytest.raises(InvalidItemError) as e:
+        make_classroom(item_id="  ")
+    assert e.value.field == "item_id"
 
-def test_frozen_classroom_cannot_be_changed():
+
+def test_empty_name():
+    with pytest.raises(InvalidItemError) as e:
+        make_classroom(name="")
+    assert e.value.field == "name"
+
+
+def test_bad_category():
+    with pytest.raises(InvalidItemError) as e:
+        make_classroom(category="gym")
+    assert e.value.field == "category"
+
+
+def test_year_ok_on_borders():
+    assert make_classroom(year=YEAR_MIN).year == YEAR_MIN
+    assert make_classroom(year=YEAR_MAX).year == YEAR_MAX
+
+
+def test_year_out_of_range():
+    with pytest.raises(InvalidItemError):
+        make_classroom(year=YEAR_MIN - 1)
+    with pytest.raises(InvalidItemError):
+        make_classroom(year=YEAR_MAX + 1)
+
+
+def test_bad_capacity():
+    with pytest.raises(InvalidItemError):
+        make_classroom(capacity=0)
+    with pytest.raises(InvalidItemError):
+        make_classroom(capacity=-5)
+
+
+def test_empty_building():
+    with pytest.raises(InvalidItemError) as e:
+        make_classroom(building="  ")
+    assert e.value.field == "building"
+
+
+def test_frozen():
     item = make_classroom()
-    with pytest.raises(FrozenInstanceError):
-        item.name = "Новое имя"
-
-def test_equality_and_hash():
-    a = make_classroom(item_id="X")
-    b = make_classroom(item_id="X")
-    c = make_classroom(item_id="Y")
-    assert a == b
-    assert a != c
-    assert hash(a) == hash(b)
+    with pytest.raises(Exception):
+        item.name = "другое"

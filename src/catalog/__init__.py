@@ -12,13 +12,7 @@ from .errors import (
 from .models import ALLOWED_CATEGORIES, YEAR_MAX, YEAR_MIN, Classroom
 from .storage import FORMAT_VERSION, load_catalog, load_into, save_catalog
 
-__version__ = "0.1.0"
-
 __all__ = [
-    "ALLOWED_CATEGORIES",
-    "FORMAT_VERSION",
-    "YEAR_MAX",
-    "YEAR_MIN",
     "Catalog",
     "CatalogError",
     "Classroom",
@@ -27,8 +21,13 @@ __all__ = [
     "InvalidItemError",
     "ItemNotFoundError",
     "UnsupportedFormatVersionError",
-    "__version__",
+    "ALLOWED_CATEGORIES",
+    "YEAR_MIN",
+    "YEAR_MAX",
+    "FORMAT_VERSION",
     "load_catalog",
     "load_into",
     "save_catalog",
 ]
+
+__version__ = "0.1.0"
